@@ -5,28 +5,27 @@ from flask import request, jsonify
 import json
 from bson.json_util import dumps, loads
 
-
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/flask12"
 app.config["DEBUG"] = True
 mongo = PyMongo(app)
 names = mongo.db.example
-name12=''
+# name12=''
 
 @app.route('/', methods=['GET'])
 def get():
     arg1=request.args.get("sort")
     arg2=request.args.get("filter")
-    n1=str(arg1)
-    name12=arg2
-    print(n1)
-    if len(n1)==0:
+    # name12=arg2
+    if len(request.args.keys()) == 0:
         return api_all()
+    elif 'filter' in request.args.keys():
+       return find2(str(arg2))
     elif arg1=="sortbyasc":
         return sort_Asc()
     elif arg1=="sortbydsc":
         return sort_Dsc()
-    return find(name12)
+    # return find(name12)
 
 def api_all():
     usersdb = mongo.db.example.find()
@@ -58,7 +57,22 @@ def find(name):
     a = dumps(z, indent = 2) 
     b = json.loads(a)
     return b
-# app.add_url_rule("/<string:name>","find",find)
+app.add_url_rule("/<string:name>","find",find)
+
+def find2(name):
+    x1 = names.find()
+    y2 = dumps(list(x1), indent = 2) 
+    authors = json.loads(y2)
+    z = []
+    for x in authors:
+        if name in x['Name']:
+            z.append(x)
+    a1 = dumps(z, indent = 2) 
+    b2 = json.loads(a1)
+    if request.args.get('sort') == 'sortbyasc':
+      return (sorted(b2, key=lambda i: (i['Name']),reverse=False))
+    elif request.args.get('sort') == 'sortbydsc':
+       return (sorted(b2, key=lambda i: (i['Name']),reverse=True))
 
 
 # @app.route("/sortbyasc",methods=['GET'])
